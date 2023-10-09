@@ -1,14 +1,15 @@
-// const express = require('express');
-// const fs = require('fs');
-// // Import our modular routers for /tips and /feedback
-//  const dbrouter = require('./db/db.json');
-// // const feedbackRouter = require('./feedback');
-// // const diagnosticsRouter = require('./diagnostics');
 
-// const app = express();
+const express = require('express');
 
-// app.use(dbrouter);
-// // app.use('/feedback', feedbackRouter);
-// // app.use('/diagnostics', diagnosticsRouter);
+// Import our files containing our routes
+const title = require('./notes');
 
-// module.exports = app;
+// Create and instance of express so we can apply the middleware and routing
+const app = express();
+
+
+app.use('/notes', notes);
+
+
+
+module.exports = app;
