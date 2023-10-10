@@ -8,12 +8,13 @@ notes.get('/', (req, res) => {
   readFromFile('./db/db.json').then((data) => res.json(JSON.parse(data)));
 });
 
+
 notes.post('/', (req, res) => {
   console.info(`${req.method} request received to add a note`);
 
   const { title, text } = req.body;
 
-  if (req.body) {
+  if (title && text) {
     const newNote = {
       title,
       text,
@@ -21,6 +22,7 @@ notes.post('/', (req, res) => {
     };
 
     readAndAppend(newNote, './db/db.json');
+
     const response = {
       status: 'success',
       body: newNote,
@@ -28,9 +30,30 @@ notes.post('/', (req, res) => {
 
     res.json(response);
   } else {
-    res.json('Error in posting feedback');
+    res.status(400).json({ error: 'Invalid request' });
   }
-    
 });
+
+// const express = require('express');
+// const router = express.Router();
+
+// // Middleware function
+// const myMiddleware = (req, res, next) => {
+//   // Perform some tasks
+//   console.log('Middleware executed');
+//   next();
+// };
+
+// // Use the middleware with router.use()
+// router.use(myMiddleware);
+
+// // Define your routes and route handlers
+// router.get('/', (req, res) => {
+//   res.send('Hello, world!');
+// });
+
+// // Export the router
+// module.exports = router;
+
 
 module.exports = notes;
