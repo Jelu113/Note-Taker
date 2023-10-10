@@ -1,59 +1,43 @@
 const notes = require('express').Router();
 const uuid = require('../helpers/uuid');
+const { readFromFile, writeToFile } = require('../helpers/fsUtils');
 
-const { readFromFile, readAndAppend } = require('../helpers/fsUtils');
-
-notes.get('/', (req, res) => {
-  console.info(`${req.method} request received for note`);
-  readFromFile('./db/db.json').then((data) => res.json(JSON.parse(data)));
+// Route to get all notes
+notes.get('/api/notes', (req, res) => {
+    // Implement code to read and return notes from your storage (e.g., a JSON file)
+    const notesData = readFromFile('./db/db.json');
+    notesData.then((data) => {
+        const notes = JSON.parse(data);
+        res.json(notes);
+    }).catch((err) => {
+        res.status(500).json({ error: err.message });
+    });
 });
 
+// Route to add a new note
+notes.post('/api/notes', (req, res) => {
+    const newNote = req.body;
 
-notes.post('/', (req, res) => {
-  console.info(`${req.method} request received to add a note`);
+    if (!newNote.title || !newNote.text) {
+        res.status(400).json({ error: 'Both title and text are required.' });
+        return;
+    }
 
-  const { title, text } = req.body;
+    // Generate a unique ID for the new note
+    newNote.note_id = uuid();
 
-  if (title && text) {
-    const newNote = {
-      title,
-      text,
-      note_id: uuid(),
-    };
-
-    readAndAppend(newNote, './db/db.json');
-
-    const response = {
-      status: 'success',
-      body: newNote,
-    };
-
-    res.json(response);
-  } else {
-    res.status(400).json({ error: 'Invalid request' });
-  }
+    // Read existing notes from the storage
+    readFromFile('./db/db.json')
+        .then((data) => {
+            const notes = JSON.parse(data);
+            // Add the new note to the existing notes array
+            notes.push(newNote);
+            // Write the updated notes array back to the storage
+            writeToFile('./db/db.json', notes)
+                .then(() => res.json(newNote))
+                .catch((err) => res.status(500).json({ error: err.message }));
+        })
+        .catch((err) => res.status(500).json({ error: err.message }));
 });
-
-// const express = require('express');
-// const router = express.Router();
-
-// // Middleware function
-// const myMiddleware = (req, res, next) => {
-//   // Perform some tasks
-//   console.log('Middleware executed');
-//   next();
-// };
-
-// // Use the middleware with router.use()
-// router.use(myMiddleware);
-
-// // Define your routes and route handlers
-// router.get('/', (req, res) => {
-//   res.send('Hello, world!');
-// });
-
-// // Export the router
-// module.exports = router;
-
 
 module.exports = notes;
